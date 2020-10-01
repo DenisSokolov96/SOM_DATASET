@@ -21,16 +21,17 @@ namespace Lab2Som
         public double[,,] VectorW;
         private int sizeX = 4;
         private int sizeY = 4;
+        private string[] allfolders;
+        List<string[]> files = new List<string[]>();
         //parameters
         private double R = 0;
         private double speed = 0;
-        private int iterat = 0;
+        private int iterat = 0;        
 
         private void обучитьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             int countFiles = 0;
-            string[] allfolders = Directory.GetDirectories("D:\\Универ\\2й курс магистратура\\НС\\Лаб2\\HMP_Dataset");
-            List<string[]> files = new List<string[]>();
+            allfolders = Directory.GetDirectories("D:\\Универ\\2й курс магистратура\\НС\\Лаб2\\HMP_Dataset");            
             for (int i = 0; i < allfolders.Length; i++)
             {
                 files.Add(Directory.GetFiles(allfolders[i]));
@@ -64,18 +65,19 @@ namespace Lab2Som
                 speed = 0.1;
                 iterat = 7000;
             }
-            
-            List<string> listData = new List<string>();
-           /* for (int i = 0; i < richTextBox1.Lines.Length; i++)
-                listData.Add( данные );*/
 
-            Learning learning = new Learning(sizeX, sizeY, listData, R, speed, iterat);
+            Learning learning = new Learning(sizeX, sizeY, R, speed, iterat, allfolders, files);
         }
 
 
         private void распознатьToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void trackBar1_Scroll(object sender, EventArgs e)
+        {
+            label3.Text = ((double)trackBar1.Value / 10).ToString();
         }
     }
 }

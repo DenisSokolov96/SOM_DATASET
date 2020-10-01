@@ -30,6 +30,7 @@
         {
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.обучитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.распознатьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label1 = new System.Windows.Forms.Label();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.textBox3 = new System.Windows.Forms.TextBox();
@@ -46,7 +47,7 @@
             this.labelSize = new System.Windows.Forms.Label();
             this.textX = new System.Windows.Forms.TextBox();
             this.textY = new System.Windows.Forms.TextBox();
-            this.распознатьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.label3 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -70,6 +71,13 @@
             this.обучитьToolStripMenuItem.Size = new System.Drawing.Size(60, 20);
             this.обучитьToolStripMenuItem.Text = "Обучить";
             this.обучитьToolStripMenuItem.Click += new System.EventHandler(this.обучитьToolStripMenuItem_Click);
+            // 
+            // распознатьToolStripMenuItem
+            // 
+            this.распознатьToolStripMenuItem.Name = "распознатьToolStripMenuItem";
+            this.распознатьToolStripMenuItem.Size = new System.Drawing.Size(79, 20);
+            this.распознатьToolStripMenuItem.Text = "Распознать";
+            this.распознатьToolStripMenuItem.Click += new System.EventHandler(this.распознатьToolStripMenuItem_Click);
             // 
             // label1
             // 
@@ -116,6 +124,7 @@
             this.trackBar1.Size = new System.Drawing.Size(162, 45);
             this.trackBar1.TabIndex = 35;
             this.trackBar1.Value = 1;
+            this.trackBar1.Scroll += new System.EventHandler(this.trackBar1_Scroll);
             // 
             // label7
             // 
@@ -217,18 +226,21 @@
             this.textY.Text = "30";
             this.textY.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
-            // распознатьToolStripMenuItem
+            // label3
             // 
-            this.распознатьToolStripMenuItem.Name = "распознатьToolStripMenuItem";
-            this.распознатьToolStripMenuItem.Size = new System.Drawing.Size(79, 20);
-            this.распознатьToolStripMenuItem.Text = "Распознать";
-            this.распознатьToolStripMenuItem.Click += new System.EventHandler(this.распознатьToolStripMenuItem_Click);
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(122, 248);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(22, 13);
+            this.label3.TabIndex = 38;
+            this.label3.Text = "0.1";
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(859, 533);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.textBox3);
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.trackBar1);
@@ -280,6 +292,7 @@
         private System.Windows.Forms.Label labelSize;
         private System.Windows.Forms.TextBox textX;
         private System.Windows.Forms.TextBox textY;
+        private System.Windows.Forms.Label label3;
     }
 }
 

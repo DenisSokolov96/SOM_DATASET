@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
 namespace Lab2Som
 {
@@ -14,74 +15,86 @@ namespace Lab2Som
         public int sizeY = 0;
         public int sizeZ = 0;
         //скорость обучения
-        private double constStartLearningRate = 0.9;
+        private double constStartLearningRate = 0.1;
         //количество итераций обучения
         private int m_iNumIterations = 7000;
         private double R = 0;
+        private string[] allfolders;
+        List<string[]> files = new List<string[]>();
 
-        public Learning(int x, int y, List<string> listData, double R, double constStartLearningRate, int m_iNumIterations)
+        public Learning(int x, int y, double R, double constStartLearningRate, int m_iNumIterations, string[] allfolders, List<string[]> files)
         {
             sizeX = x;
             sizeY = y;
-            sizeZ = getZ(ref listData);
+            sizeZ = 3;
             this.R = R;
             this.constStartLearningRate = constStartLearningRate;
             this.m_iNumIterations = m_iNumIterations;
             VectorW = new double[sizeY, sizeX, sizeZ];
             step1(ref sizeY, ref sizeX, ref sizeZ);
 
-            List<string> spisok = new List<string>();
-            spisok.AddRange(listData.ToArray());
+            this.allfolders = allfolders;
+            this.files.AddRange(files.ToArray());
 
-            int k = 0;
+            int countIter = 0;
             do
             {
-                string setVector = step2(ref listData);
-                if (setVector.Equals("stop"))
+                int k = 0;
+                do
                 {
-                    listData.Clear();
-                    listData.AddRange(spisok.ToArray());
-                    setVector = step2(ref listData);
-                }
 
-                int dx, dy;
-
-                dx = 0; dy = 0;
-                double dist = Double.MaxValue;
-                for (int j = 0; j < sizeY; j++)
-                    for (int i = 0; i < sizeX; i++)
+                    //iTxt - номер txt в папке
+                    string[] mas = files[k];
+                    for (int iTxt = 0; iTxt < mas.Length; iTxt++)
                     {
-                        double a = step3(ref j, ref i, ref setVector);
-                        if (a < dist)
+                        //считываю данные
+                        List<string> listData = readDatas(k, iTxt);
+
+                        //отправляю на обучение по одной строке
+                        for (int iStr = 0; iStr < listData.Count; iStr++)
                         {
-                            dist = a;
-                            dx = i;
-                            dy = j;
+                            string setVector = listData[iStr];
+
+                            int dx, dy;
+
+                            dx = 0; dy = 0;
+                            double dist = Double.MaxValue;
+                            for (int j = 0; j < sizeY; j++)
+                                for (int i = 0; i < sizeX; i++)
+                                {
+                                    double a = step3(ref j, ref i, ref setVector);
+                                    if (a < dist)
+                                    {
+                                        dist = a;
+                                        dx = i;
+                                        dy = j;
+                                    }
+                                }
+
+                            step4(ref dy, ref dx, ref setVector, ref k, ref dist);
+                            /*изменение весов соседей*/
+                            int ves = (int)funcDMapRadius(k);
+                            for (int j = dy - ves; j < dy + ves; j++)
+                            {
+                                if (j < 0) j = 0;
+                                if (j == sizeY) break;
+                                for (int i = dx - ves; i < dx + ves; i++)
+                                {
+                                    if (i < 0) i = 0;
+                                    if (i == sizeX) break;
+                                    if ((i != dx) || (j != dy))
+                                    {
+                                        dist = step3(ref j, ref i, ref setVector);
+                                        step4(ref j, ref i, ref setVector, ref k, ref dist);
+                                    }
+                                }
+                            }
                         }
                     }
-
-                step4(ref dy, ref dx, ref setVector, ref k, ref dist);
-                /*изменение весов соседей*/
-                int ves = (int)funcDMapRadius(k);
-                for (int j = dy - ves; j < dy + ves; j++)
-                {
-                    if (j < 0) j = 0;
-                    if (j == sizeY) break;
-                    for (int i = dx - ves; i < dx + ves; i++)
-                    {
-                        if (i < 0) i = 0;
-                        if (i == sizeX) break;
-                        if ((i != dx) || (j != dy))
-                        {
-                            dist = step3(ref j, ref i, ref setVector);
-                            step4(ref j, ref i, ref setVector, ref k, ref dist);
-                        }
-                    }
-                }
-                /**************************/
-                k++;
-            } while (k < m_iNumIterations);
-
+                    k++;
+                } while (k < files.Count);
+                countIter++;
+            } while (countIter < m_iNumIterations);
 
         }
 
@@ -123,7 +136,7 @@ namespace Lab2Som
         }
 
         //Из обучающего множества случайным образом выбирается вектор.
-        private string step2(ref List<string> listData)
+        /*private string step2(ref List<string> listData)
         {
             if (listData.Count == 0) return "stop";
             Random rnd = new Random();
@@ -131,7 +144,7 @@ namespace Lab2Som
             string setVector = listData[k];
             listData.RemoveAt(k);
             return setVector;
-        }
+        }*/
 
         //поиск близких значений
         private double step3(ref int y, ref int x, ref string vector)
@@ -192,13 +205,29 @@ namespace Lab2Som
 
             return list;
         }
-
-        // получить кол-во весов в узле
-        private int getZ(ref List<string> listData)
+        
+        //читать из файла
+        private List<string> readDatas(int iter, int iText)
         {
+            List<string> spisok = new List<string>();
+            string path = files[iter][iText];
 
-            string str = listData[0];
-            return masToList(ref str).Count;
+            try
+            {
+                using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        spisok.Add(line);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Error");                
+            }
+            return spisok;
         }
     }
 }
