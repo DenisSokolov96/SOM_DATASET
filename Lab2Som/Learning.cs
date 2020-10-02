@@ -43,8 +43,8 @@ namespace Lab2Som
                 do
                 {
 
-                    //iTxt - номер txt в папке
                     string[] mas = files[k];
+                    //iTxt - номер txt в папке
                     for (int iTxt = 0; iTxt < mas.Length; iTxt++)
                     {
                         //считываю данные
@@ -94,7 +94,7 @@ namespace Lab2Som
                     k++;
                 } while (k < files.Count);
                 countIter++;
-            } while (countIter < m_iNumIterations);
+            } while (countIter < /*m_iNumIterations*/1);
 
         }
 
@@ -103,14 +103,22 @@ namespace Lab2Som
         {
             List<double[]> list = new List<double[]>();
 
-            list.Add(new double[] { 255, 0, 0 });
+            /*list.Add(new double[] { 255, 0, 0 });
             list.Add(new double[] { 0, 128, 0 });
             list.Add(new double[] { 0, 0, 255 });
             list.Add(new double[] { 0, 100, 0 });
             list.Add(new double[] { 0, 0, 139 });
             list.Add(new double[] { 255, 255, 0 });
             list.Add(new double[] { 255, 165, 0 });
-            list.Add(new double[] { 128, 0, 128 });
+            list.Add(new double[] { 128, 0, 128 });*/
+            list.Add(new double[] { 0, 15, 30 });
+            list.Add(new double[] { 5, 20, 35 });
+            list.Add(new double[] { 10, 25, 40 });
+            list.Add(new double[] {15, 30, 45 });
+            list.Add(new double[] { 20, 35, 0 });
+            list.Add(new double[] { 25, 40, 5 });
+            list.Add(new double[] { 30, 45, 10 });
+            list.Add(new double[] { 35, 0, 15 });
 
 
             Random rnd = new Random();
