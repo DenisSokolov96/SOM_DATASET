@@ -21,6 +21,8 @@ namespace Lab2Som
         private double R = 0;
         private string[] allfolders;
         List<string[]> files = new List<string[]>();
+        //просто подсчитываю средние значения
+        public List<int[]> listZn = new List<int[]>();
 
         public Learning(int x, int y, double R, double constStartLearningRate, int m_iNumIterations, string[] allfolders, List<string[]> files)
         {
@@ -44,17 +46,21 @@ namespace Lab2Som
                 {
 
                     string[] mas = files[k];
+                    listZn.Add(new int[] { 0, 0, 0 });
+                    int count = 0;
                     //iTxt - номер txt в папке
                     for (int iTxt = 0; iTxt < mas.Length; iTxt++)
                     {
                         //считываю данные
                         List<string> listData = readDatas(k, iTxt);
-
+                        count += listData.Count;
                         //отправляю на обучение по одной строке
                         for (int iStr = 0; iStr < listData.Count; iStr++)
                         {
-                            string setVector = listData[iStr];
-
+                            int[] intVector = masToList(listData[iStr]);
+                            listZn[k][0] += intVector[0];
+                            listZn[k][1] += intVector[1];
+                            listZn[k][2] += intVector[2];
                             int dx, dy;
 
                             dx = 0; dy = 0;
@@ -62,7 +68,7 @@ namespace Lab2Som
                             for (int j = 0; j < sizeY; j++)
                                 for (int i = 0; i < sizeX; i++)
                                 {
-                                    double a = step3(ref j, ref i, ref setVector);
+                                    double a = step3(ref j, ref i, ref intVector);
                                     if (a < dist)
                                     {
                                         dist = a;
@@ -71,7 +77,7 @@ namespace Lab2Som
                                     }
                                 }
 
-                            step4(ref dy, ref dx, ref setVector, ref k, ref dist);
+                            step4(ref dy, ref dx, ref intVector, ref k, ref dist);
                             /*изменение весов соседей*/
                             int ves = (int)funcDMapRadius(k);
                             for (int j = dy - ves; j < dy + ves; j++)
@@ -84,18 +90,21 @@ namespace Lab2Som
                                     if (i == sizeX) break;
                                     if ((i != dx) || (j != dy))
                                     {
-                                        dist = step3(ref j, ref i, ref setVector);
-                                        step4(ref j, ref i, ref setVector, ref k, ref dist);
+                                        dist = step3(ref j, ref i, ref intVector);
+                                        step4(ref j, ref i, ref intVector, ref k, ref dist);
                                     }
                                 }
                             }
-                        }
+                        }                        
                     }
+                    listZn[k][0] /= count;
+                    listZn[k][1] /= count;
+                    listZn[k][2] /= count;
+                    count = 0;                    
                     k++;
                 } while (k < files.Count);
                 countIter++;
             } while (countIter < /*m_iNumIterations*/1);
-
         }
 
         //Инициализация вектора весов (для каждого из узлов сети) случайными значениями
@@ -111,36 +120,33 @@ namespace Lab2Som
             list.Add(new double[] { 255, 255, 0 });
             list.Add(new double[] { 255, 165, 0 });
             list.Add(new double[] { 128, 0, 128 });*/
-            list.Add(new double[] { 0, 15, 30 });
-            list.Add(new double[] { 5, 20, 35 });
-            list.Add(new double[] { 10, 25, 40 });
-            list.Add(new double[] {15, 30, 45 });
-            list.Add(new double[] { 20, 35, 0 });
-            list.Add(new double[] { 25, 40, 5 });
-            list.Add(new double[] { 30, 45, 10 });
-            list.Add(new double[] { 35, 0, 15 });
+            list.Add(new double[] { 22, 49, 35 });
+            list.Add(new double[] { 20, 50, 35 });
+            list.Add(new double[] { 22, 50, 34 });
+            list.Add(new double[] { 18, 49, 34, });
+            list.Add(new double[] { 26, 49, 40 });
+            list.Add(new double[] { 25, 49, 41 });
+            list.Add(new double[] { 21, 48, 43 });
 
 
             Random rnd = new Random();
             for (int j = 0; j < y; j++)
                 for (int i = 0; i < x; i++)
                 {
-                    double[] a = list[rnd.Next(0, 8)];
+                    double[] a = list[rnd.Next(0, 7)];
                     for (int k = 0; k < z; k++)
                         VectorW[j, i, k] = a[k];
                 }
         }
 
         // количество итераций, которые будет выполнять алгоритм обучения
-        private double Eps(string vector, int dx, int dy)
+        private double Eps(int[] vector, int dx, int dy)
         {
-            List<int> list = masToList(ref vector);
-
             double eps = 0.0;
-            for (int i = 0; i < list.Count; i++)
-                eps += Math.Abs(list[i] - VectorW[dy, dx, i]);
+            for (int i = 0; i < vector.Length; i++)
+                eps += Math.Abs(vector[i] - VectorW[dy, dx, i]);
 
-            return eps * (1 / list.Count);
+            return eps * (1 / vector.Length);
         }
 
         //Из обучающего множества случайным образом выбирается вектор.
@@ -155,24 +161,20 @@ namespace Lab2Som
         }*/
 
         //поиск близких значений
-        private double step3(ref int y, ref int x, ref string vector)
+        private double step3(ref int y, ref int x, ref int[] vector)
         {
-            List<int> list = masToList(ref vector);
-
             double distance = 0;
-            for (int i = 0; i < list.Count; i++)
-                distance += (list[i] - VectorW[y, x, i]) * (list[i] - VectorW[y, x, i]);
+            for (int i = 0; i < vector.Length; i++)
+                distance += (vector[i] - VectorW[y, x, i]) * (vector[i] - VectorW[y, x, i]);
 
             return Math.Sqrt(distance);
         }
 
         //регулировка веса
-        private void step4(ref int dy, ref int dx, ref string vector, ref int k, ref double dist)
+        private void step4(ref int dy, ref int dx, ref int[] vector, ref int k, ref double dist)
         {
-            List<int> list = masToList(ref vector);
-
             for (int i = 0; i < sizeZ; i++)
-                VectorW[dy, dx, i] += funcT(k, dist) * funcSpeedL(k) * (list[i] - VectorW[dy, dx, i]);
+                VectorW[dy, dx, i] += funcT(k, dist) * funcSpeedL(k) * (vector[i] - VectorW[dy, dx, i]);
         }
 
         // степень влияния расстояния узла от BMU на его обучение
@@ -195,7 +197,7 @@ namespace Lab2Som
         }
 
         //переобразовать входную строку в список целых значений
-        private List<int> masToList(ref string vector)
+        private int[] masToList(string vector)
         {
             List<int> list = new List<int>();
             list.Add(0);
@@ -211,7 +213,7 @@ namespace Lab2Som
                 }
             }
 
-            return list;
+            return list.ToArray();
         }
         
         //читать из файла
@@ -222,7 +224,7 @@ namespace Lab2Som
 
             try
             {
-                using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
+                using (StreamReader sr = new StreamReader(path, Encoding.Default))
                 {
                     string line;
                     while ((line = sr.ReadLine()) != null)

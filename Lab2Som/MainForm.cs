@@ -69,6 +69,11 @@ namespace Lab2Som
             Learning learning = new Learning(sizeX, sizeY, R, speed, iterat, allfolders, files);
             VectorW = learning.VectorW;
 
+            List<int[]> listZn = new List<int[]>();
+            listZn.AddRange(learning.listZn.ToArray());
+            for (int i = 0; i < listZn.Count; i++)
+                richTextBox1.Text += listZn[i][0].ToString() + " " + listZn[i][1].ToString() + " " + listZn[i][2].ToString() + "\n";               
+
             Draw();
         }
 
@@ -84,18 +89,7 @@ namespace Lab2Som
                     long a1 = (long)VectorW[j, i, 0];
                     long a2 = (long)VectorW[j, i, 1];
                     long a3 = (long)VectorW[j, i, 2];
-
-                    /* double b = 0.5 / VectorW[j, i, 0];
-                     long a1 = (long)(255.0 / b);
-
-                     b = 0.5 / VectorW[j, i, 1];
-                     long a2 = (long)(255.0 / b);
-
-                     b = 0.5 / VectorW[j, i, 2];
-                     long a3 = (long)(255.0 / b);*/
-
-
-
+                                        
                     if (a1 > 255) a1 = 255;
                     if (a2 > 255) a2 = 255;
                     if (a3 > 255) a3 = 255;

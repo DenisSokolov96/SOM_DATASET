@@ -17,11 +17,13 @@ namespace Lab2SOM
         {
             VectorW = Matr;
 
+            int[] intVector = masToList(ref vector);
+
             double dist = Double.MaxValue;
             for (int j = 0; j < sizeY; j++)
                 for (int i = 0; i < sizeX; i++)
                 {
-                    double a = step1(ref j, ref i, ref vector);
+                    double a = step1(ref j, ref i, ref intVector);
                     if (a < dist)
                     {
                         dist = a;
@@ -33,19 +35,17 @@ namespace Lab2SOM
         }
 
         //поиск близких значений
-        private double step1(ref int y, ref int x, ref string vector)
-        {
-            List<int> list = masToList(ref vector);
-
+        private double step1(ref int y, ref int x, ref int[] vector)
+        {            
             double distance = 0;
-            for (int i = 0; i < list.Count; i++)
-                distance += (list[i] - VectorW[y, x, i]) * (list[i] - VectorW[y, x, i]);
+            for (int i = 0; i < vector.Length; i++)
+                distance += (vector[i] - VectorW[y, x, i]) * (vector[i] - VectorW[y, x, i]);
 
             return Math.Sqrt(distance);
         }
 
         //переобразовать входную строку в список целых значений
-        private List<int> masToList(ref string vector)
+        private int[] masToList(ref string vector)
         {
             List<int> list = new List<int>();
             list.Add(0);
@@ -61,7 +61,7 @@ namespace Lab2SOM
                 }
             }
 
-            return list;
+            return list.ToArray();
         }
     }
 }
