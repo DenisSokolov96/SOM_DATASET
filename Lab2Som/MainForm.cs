@@ -16,6 +16,7 @@ namespace Lab2Som
         public MainForm()
         {
             InitializeComponent();
+            MainStart();
         }
 
         public double[,,] VectorW;
@@ -26,12 +27,13 @@ namespace Lab2Som
         //parameters
         private double R = 0;
         private double speed = 0;
-        private int iterat = 0;        
+        private int iterat = 0;
+        private bool FlagFiles = false;
 
-        private void обучитьToolStripMenuItem_Click(object sender, EventArgs e)
+        private void MainStart()
         {
             int countFiles = 0;
-            allfolders = Directory.GetDirectories("D:\\Универ\\2й курс магистратура\\НС\\Лаб2\\HMP_Dataset");            
+            allfolders = Directory.GetDirectories("D:\\Универ\\2й курс магистратура\\НС\\Лаб2\\HMP_Dataset");
             for (int i = 0; i < allfolders.Length; i++)
             {
                 files.Add(Directory.GetFiles(allfolders[i]));
@@ -40,8 +42,16 @@ namespace Lab2Som
             richTextBox1.Text += "Прочитано: " + allfolders.Length + " директ.\n";
             richTextBox1.Text += "Файлов txt: " + countFiles.ToString() + ".\n";
 
+            if (!FlagFiles)
+            {
+                foreach (string list in allfolders)
+                    comboBox1.Items.Add(list);
+                FlagFiles = true;
+            }
+        }
+        private void обучитьToolStripMenuItem_Click(object sender, EventArgs e)
+        {            
             learningFunc();            
-
         }
 
         private void learningFunc()
@@ -68,12 +78,7 @@ namespace Lab2Som
 
             Learning learning = new Learning(sizeX, sizeY, R, speed, iterat, allfolders, files);
             VectorW = learning.VectorW;
-
-            List<int[]> listZn = new List<int[]>();
-            listZn.AddRange(learning.listZn.ToArray());
-            for (int i = 0; i < listZn.Count; i++)
-                richTextBox1.Text += listZn[i][0].ToString() + " " + listZn[i][1].ToString() + " " + listZn[i][2].ToString() + "\n";               
-
+                        
             Draw();
         }
 
@@ -89,7 +94,11 @@ namespace Lab2Som
                     long a1 = (long)VectorW[j, i, 0];
                     long a2 = (long)VectorW[j, i, 1];
                     long a3 = (long)VectorW[j, i, 2];
-                                        
+
+                    a1 *= 5;
+                    a2 *= 5;
+                    a3 *= 5;
+
                     if (a1 > 255) a1 = 255;
                     if (a2 > 255) a2 = 255;
                     if (a3 > 255) a3 = 255;
@@ -128,12 +137,44 @@ namespace Lab2Som
 
         private void распознатьToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            // поиск файла (последний в папке)
+            int index = Array.IndexOf(allfolders, comboBox1.SelectedItem.ToString());
 
+            Recognition recognition = new Recognition(sizeX, sizeY, VectorW, files[index][files[index].Length-1]);
+            Graphics g = pictureBox1.CreateGraphics();
+            int y = pictureBox1.Width / sizeY;
+            int x = pictureBox1.Height / sizeX;
+
+            for (int k = 0; k < recognition.ListLovedOnes.Count(); k++)
+            {
+                int i = recognition.ListLovedOnes[k][0];
+                int j = recognition.ListLovedOnes[k][1];                
+                                             
+                double a1 = VectorW[j, i, 0];
+                double a2 = VectorW[j, i, 1];
+                double a3 = VectorW[j, i, 2];
+
+                if (a1 > 255) a1 = 255;
+                if (a2 > 255) a2 = 255;
+                if (a3 > 255) a3 = 255;
+                if (a1 < 0) a1 = 0;
+                if (a2 < 0) a2 = 0;
+                if (a3 < 0) a3 = 0;
+                
+            
+                g.DrawRectangle(new Pen(Color.White), j * y, i * x, y, x);                
+            }
+            g.Dispose();
         }
 
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
             label3.Text = ((double)trackBar1.Value / 10).ToString();
+        }
+
+        private void перерисоватьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Draw();
         }
     }
 }

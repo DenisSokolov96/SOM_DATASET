@@ -21,8 +21,8 @@ namespace Lab2Som
         private double R = 0;
         private string[] allfolders;
         List<string[]> files = new List<string[]>();
-        //просто подсчитываю средние значения
-        public List<int[]> listZn = new List<int[]>();
+        //Считываю все данные в список
+        List<List<List<int[]>>> ListDataSet = new List<List<List<int[]>>>();
 
         public Learning(int x, int y, double R, double constStartLearningRate, int m_iNumIterations, string[] allfolders, List<string[]> files)
         {
@@ -38,29 +38,25 @@ namespace Lab2Som
             this.allfolders = allfolders;
             this.files.AddRange(files.ToArray());
 
+            readDatas();
             int countIter = 0;
             do
             {
+                //номер директории
                 int k = 0;
                 do
                 {
-
                     string[] mas = files[k];
-                    listZn.Add(new int[] { 0, 0, 0 });
-                    int count = 0;
-                    //iTxt - номер txt в папке
+                    //iTxt - номер txt в директории
                     for (int iTxt = 0; iTxt < mas.Length; iTxt++)
                     {
-                        //считываю данные
-                        List<string> listData = readDatas(k, iTxt);
-                        count += listData.Count;
+                        //получаю данные
+                        List<int[]> listData = new List<int[]>();
+                        listData.AddRange(ListDataSet[k][iTxt]);
                         //отправляю на обучение по одной строке
                         for (int iStr = 0; iStr < listData.Count; iStr++)
                         {
-                            int[] intVector = masToList(listData[iStr]);
-                            listZn[k][0] += intVector[0];
-                            listZn[k][1] += intVector[1];
-                            listZn[k][2] += intVector[2];
+                            int[] intVector = listData[iStr];
                             int dx, dy;
 
                             dx = 0; dy = 0;
@@ -97,46 +93,21 @@ namespace Lab2Som
                             }
                         }                        
                     }
-                    listZn[k][0] /= count;
-                    listZn[k][1] /= count;
-                    listZn[k][2] /= count;
-                    count = 0;                    
-                    k++;
+                    k++;                   
                 } while (k < files.Count);
                 countIter++;
-            } while (countIter < /*m_iNumIterations*/1);
+            } while (countIter < m_iNumIterations);
         }
 
         //Инициализация вектора весов (для каждого из узлов сети) случайными значениями
         private void step1(ref int y, ref int x, ref int z)
-        {
-            List<double[]> list = new List<double[]>();
-
-            /*list.Add(new double[] { 255, 0, 0 });
-            list.Add(new double[] { 0, 128, 0 });
-            list.Add(new double[] { 0, 0, 255 });
-            list.Add(new double[] { 0, 100, 0 });
-            list.Add(new double[] { 0, 0, 139 });
-            list.Add(new double[] { 255, 255, 0 });
-            list.Add(new double[] { 255, 165, 0 });
-            list.Add(new double[] { 128, 0, 128 });*/
-            list.Add(new double[] { 22, 49, 35 });
-            list.Add(new double[] { 20, 50, 35 });
-            list.Add(new double[] { 22, 50, 34 });
-            list.Add(new double[] { 18, 49, 34, });
-            list.Add(new double[] { 26, 49, 40 });
-            list.Add(new double[] { 25, 49, 41 });
-            list.Add(new double[] { 21, 48, 43 });
-
-
+        {           
             Random rnd = new Random();
             for (int j = 0; j < y; j++)
-                for (int i = 0; i < x; i++)
-                {
-                    double[] a = list[rnd.Next(0, 7)];
+                for (int i = 0; i < x; i++)                
                     for (int k = 0; k < z; k++)
-                        VectorW[j, i, k] = a[k];
-                }
+                        VectorW[j, i, k] = rnd.NextDouble();
+                
         }
 
         // количество итераций, которые будет выполнять алгоритм обучения
@@ -148,17 +119,6 @@ namespace Lab2Som
 
             return eps * (1 / vector.Length);
         }
-
-        //Из обучающего множества случайным образом выбирается вектор.
-        /*private string step2(ref List<string> listData)
-        {
-            if (listData.Count == 0) return "stop";
-            Random rnd = new Random();
-            int k = rnd.Next(0, listData.Count);
-            string setVector = listData[k];
-            listData.RemoveAt(k);
-            return setVector;
-        }*/
 
         //поиск близких значений
         private double step3(ref int y, ref int x, ref int[] vector)
@@ -217,27 +177,24 @@ namespace Lab2Som
         }
         
         //читать из файла
-        private List<string> readDatas(int iter, int iText)
-        {
-            List<string> spisok = new List<string>();
-            string path = files[iter][iText];
-
-            try
+        private void readDatas()
+        {            
+            for (int iFold = 0; iFold < allfolders.Length; iFold++)
             {
-                using (StreamReader sr = new StreamReader(path, Encoding.Default))
+                List<List<int[]>> listList = new List<List<int[]>>();
+                for (int iFile = 0; iFile < files[iFold].Length; iFile++)
                 {
-                    string line;
-                    while ((line = sr.ReadLine()) != null)
+                    List<int[]> listMas = new List<int[]>();
+                    using (StreamReader sr = new StreamReader(files[iFold][iFile], Encoding.Default))
                     {
-                        spisok.Add(line);
+                        string line;
+                        while ((line = sr.ReadLine()) != null)                        
+                            listMas.Add(masToList(line));
                     }
+                    listList.Add(listMas);
                 }
+                ListDataSet.Add(listList);
             }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message, "Error");                
-            }
-            return spisok;
         }
     }
 }

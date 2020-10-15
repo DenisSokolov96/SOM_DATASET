@@ -3,49 +3,69 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO;
 
-namespace Lab2SOM
+namespace Lab2Som
 {
     class Recognition
     {
-        private double[,,] VectorW;
-        public int znI = -1;
-        public int znJ = -1;
+        private double[,,] VectorW;        
+        private string FilesName = null;
+        private List<int[]> ListIntVectors;
+        public List<int[]> ListLovedOnes = new List<int[]>();
 
-
-        public Recognition(int sizeX, int sizeY, double[,,] Matr, string vector)
+        public Recognition(int sizeX, int sizeY, double[,,] Matr, string FilesName)
         {
             VectorW = Matr;
+            this.FilesName = FilesName;
+            ListIntVectors = ReadData();
 
-            int[] intVector = masToList(ref vector);
-
-            double dist = Double.MaxValue;
-            for (int j = 0; j < sizeY; j++)
-                for (int i = 0; i < sizeX; i++)
-                {
-                    double a = step1(ref j, ref i, ref intVector);
-                    if (a < dist)
+            for (int KIndex = 0; KIndex < ListIntVectors.Count(); KIndex++)
+            {
+                int znI = -1;
+                int znJ = -1;
+                double dist = Double.MaxValue;
+                for (int j = 0; j < sizeY; j++)
+                    for (int i = 0; i < sizeX; i++)
                     {
-                        dist = a;
-                        znI = i;
-                        znJ = j;
+                        double a = step1(ref j, ref i,ListIntVectors[KIndex]);
+                        if (a < dist)
+                        {
+                            dist = a;
+                            znI = i;
+                            znJ = j;
+                        }
                     }
-                }
+                ListLovedOnes.Add(new int[] { znI, znJ});
+            }
 
         }
 
-        //поиск близких значений
-        private double step1(ref int y, ref int x, ref int[] vector)
-        {            
-            double distance = 0;
-            for (int i = 0; i < vector.Length; i++)
-                distance += (vector[i] - VectorW[y, x, i]) * (vector[i] - VectorW[y, x, i]);
+        //чтение значение значений с файлика
+        private List<int[]> ReadData()
+        {
+            List<int[]> ListVector = new List<int[]>();
+            
+            try
+            {
+                using (StreamReader sr = new StreamReader(FilesName, Encoding.Default))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)                    
+                        ListVector.Add(masToList(line));
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Error");
+            }
 
-            return Math.Sqrt(distance);
+            return ListVector;
         }
 
         //переобразовать входную строку в список целых значений
-        private int[] masToList(ref string vector)
+        private int[] masToList(string vector)
         {
             List<int> list = new List<int>();
             list.Add(0);
@@ -63,5 +83,16 @@ namespace Lab2SOM
 
             return list.ToArray();
         }
+
+        //поиск близких значений
+        private double step1(ref int y, ref int x, int[] vector)
+        {            
+            double distance = 0;
+            for (int i = 0; i < vector.Length; i++)
+                distance += (vector[i] - VectorW[y, x, i]) * (vector[i] - VectorW[y, x, i]);
+
+            return Math.Sqrt(distance);
+        }
+        
     }
 }
