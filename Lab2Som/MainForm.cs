@@ -46,6 +46,7 @@ namespace Lab2Som
             {
                 foreach (string list in allfolders)
                     comboBox1.Items.Add(list);
+                comboBox1.Text = comboBox1.Items[0].ToString();
                 FlagFiles = true;
             }
         }

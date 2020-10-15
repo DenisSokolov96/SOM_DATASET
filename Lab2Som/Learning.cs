@@ -39,32 +39,27 @@ namespace Lab2Som
             this.files.AddRange(files.ToArray());
 
             readDatas();
+            int dx = 0, dy = 0;
+            double dist = Double.MaxValue;
             int countIter = 0;
             do
             {
                 //номер директории
                 int k = 0;
                 do
-                {
-                    string[] mas = files[k];
+                {                    
                     //iTxt - номер txt в директории
-                    for (int iTxt = 0; iTxt < mas.Length; iTxt++)
+                    for (int iTxt = 0; iTxt < ListDataSet[k].Count; iTxt++)
                     {
-                        //получаю данные
-                        List<int[]> listData = new List<int[]>();
-                        listData.AddRange(ListDataSet[k][iTxt]);
                         //отправляю на обучение по одной строке
-                        for (int iStr = 0; iStr < listData.Count; iStr++)
+                        for (int iStr = 0; iStr < ListDataSet[k][iTxt].Count; iStr++)
                         {
-                            int[] intVector = listData[iStr];
-                            int dx, dy;
-
                             dx = 0; dy = 0;
-                            double dist = Double.MaxValue;
+                            dist = Double.MaxValue;
                             for (int j = 0; j < sizeY; j++)
                                 for (int i = 0; i < sizeX; i++)
                                 {
-                                    double a = step3(ref j, ref i, ref intVector);
+                                    double a = step3(ref j, ref i, ListDataSet[k][iTxt][iStr]);
                                     if (a < dist)
                                     {
                                         dist = a;
@@ -73,7 +68,7 @@ namespace Lab2Som
                                     }
                                 }
 
-                            step4(ref dy, ref dx, ref intVector, ref k, ref dist);
+                            step4(ref dy, ref dx, ListDataSet[k][iTxt][iStr], ref k, ref dist);
                             /*изменение весов соседей*/
                             int ves = (int)funcDMapRadius(k);
                             for (int j = dy - ves; j < dy + ves; j++)
@@ -86,8 +81,8 @@ namespace Lab2Som
                                     if (i == sizeX) break;
                                     if ((i != dx) || (j != dy))
                                     {
-                                        dist = step3(ref j, ref i, ref intVector);
-                                        step4(ref j, ref i, ref intVector, ref k, ref dist);
+                                        dist = step3(ref j, ref i, ListDataSet[k][iTxt][iStr]);
+                                        step4(ref j, ref i, ListDataSet[k][iTxt][iStr], ref k, ref dist);
                                     }
                                 }
                             }
@@ -110,18 +105,8 @@ namespace Lab2Som
                 
         }
 
-        // количество итераций, которые будет выполнять алгоритм обучения
-        private double Eps(int[] vector, int dx, int dy)
-        {
-            double eps = 0.0;
-            for (int i = 0; i < vector.Length; i++)
-                eps += Math.Abs(vector[i] - VectorW[dy, dx, i]);
-
-            return eps * (1 / vector.Length);
-        }
-
         //поиск близких значений
-        private double step3(ref int y, ref int x, ref int[] vector)
+        private double step3(ref int y, ref int x, int[] vector)
         {
             double distance = 0;
             for (int i = 0; i < vector.Length; i++)
@@ -131,7 +116,7 @@ namespace Lab2Som
         }
 
         //регулировка веса
-        private void step4(ref int dy, ref int dx, ref int[] vector, ref int k, ref double dist)
+        private void step4(ref int dy, ref int dx, int[] vector, ref int k, ref double dist)
         {
             for (int i = 0; i < sizeZ; i++)
                 VectorW[dy, dx, i] += funcT(k, dist) * funcSpeedL(k) * (vector[i] - VectorW[dy, dx, i]);
@@ -178,11 +163,12 @@ namespace Lab2Som
         
         //читать из файла
         private void readDatas()
-        {            
+        {
             for (int iFold = 0; iFold < allfolders.Length; iFold++)
             {
                 List<List<int[]>> listList = new List<List<int[]>>();
-                for (int iFile = 0; iFile < files[iFold].Length; iFile++)
+                //не беру последний, оставляю для проверки
+                for (int iFile = 0; iFile < files[iFold].Length - 1; iFile++)
                 {
                     List<int[]> listMas = new List<int[]>();
                     using (StreamReader sr = new StreamReader(files[iFold][iFile], Encoding.Default))
